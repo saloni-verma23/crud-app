@@ -1,0 +1,43 @@
+:root {
+  --light: #e0e1dd;
+  --primary: #778da9;
+  --secondary: #415a77;
+  --accent: #1b263b;
+  --dark: #0d1b2a;
+}
+body {
+  background-color: var(--accent);
+}
+
+.table-container .table {
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.table-container .table thead th {
+  background-color: var(--primary) !important;
+  color: var(--light) !important;
+}
+
+.table-container .table tbody tr:hover {
+  background-color: var(--secondary) !important;
+  color: var(--light) !important;
+}
+
+.table-container .table-bordered th,
+.table-container .table-bordered td {
+  border-color: var(--light) !important;
+}
+
+.submitBtn {
+  background-color: var(--secondary);
+  border: 1px solid var(--light);
+  color: white;
+}
+.submitBtn:hover,
+.submitBtn:focus {
+  border: 2px solid var(--accent);
+  background-color: white;
+  color: var(--accent);
+}
