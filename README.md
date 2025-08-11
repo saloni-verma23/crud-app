@@ -55,7 +55,12 @@ A simple **CRUD** (Create, Read, Update, Delete) web application for managing us
    - Update your `.env` file in `/crud-backend`:
 
      ```
-     DATABASE_URL="postgresql://<username>:<password>@localhost:5432/form_db"
+      PORT=PORT
+      DB_USER=DB_USER
+      DB_PASSWORD=DB_PASSWORD
+      DB_HOST=DB_HOST
+      DB_PORT=DB_PORT
+      DB_NAME=DB_NAME
      ```
 
 ---
