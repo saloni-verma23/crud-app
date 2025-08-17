@@ -25,6 +25,16 @@ export const getUsers = async () => {
     throw error;
   }
 };
+export const getUserById = async (id: number) => {
+  try {
+    const response = await API.get(`/${id}`);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching user by ID');
+    throw error;
+  }
+};
 
 export const createUser = async (data: User) => {
   try {

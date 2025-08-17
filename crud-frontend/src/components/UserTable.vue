@@ -1,6 +1,6 @@
 <script setup>
-import { deleteUser, updateUser } from '../api/userAPI';
-import { ref } from 'vue';
+import { deleteUser } from '../api/userAPI';
+import { useRouter } from 'vue-router';
 
 defineProps({
   users: {
@@ -8,30 +8,11 @@ defineProps({
   },
 });
 const emit = defineEmits(['refresh']);
+const router = useRouter();
 
-const editingId = ref(null);
-const editingUser = ref({});
-
-const startEdit = (user) => {
-  editingId.value = user.id;
-  editingUser.value = { ...user };
-  if (editingUser.value.dob) {
-    editingUser.value.dob = editingUser.value.dob.split('T')[0];
-  }
+const goToEditForm = (id) => {
+  router.push('/user/edit/' + id);
 };
-function cancelEdit() {
-  editingId.value = null;
-  editingUser.value = {};
-}
-async function saveEdit() {
-  try {
-    await updateUser(editingId.value, editingUser.value);
-    emit('refresh');
-    cancelEdit();
-  } catch (error) {
-    console.error('Error updating user:', error);
-  }
-}
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -64,38 +45,15 @@ async function handleDelete(id) {
       <tr v-for="(user, index) in users" :key="user.id">
         <td>{{ index + 1 }}</td>
 
-        <td v-if="editingId === user.id">
-          <input v-model="editingUser.first_name" type="text" class="form-control" />
-        </td>
-        <td v-else>{{ user.first_name }}</td>
-
-        <td v-if="editingId === user.id">
-          <input v-model="editingUser.last_name" type="text" class="form-control" />
-        </td>
-        <td v-else>{{ user.last_name }}</td>
-
-        <td v-if="editingId === user.id">
-          <input type="date" v-model="editingUser.dob" class="form-control" />
-        </td>
-        <td v-else>{{ formatDate(user.dob) }}</td>
-
-        <td v-if="editingId === user.id">
-          <input v-model="editingUser.mobile" type="phone" class="form-control" />
-        </td>
-        <td v-else>{{ user.mobile }}</td>
-
-        <td v-if="editingId === user.id">
-          <input v-model="editingUser.address" type="text" class="form-control" />
-        </td>
-        <td v-else>{{ user.address }}</td>
+        <td>{{ user.first_name }}</td>
+        <td>{{ user.last_name }}</td>
+        <td>{{ formatDate(user.dob) }}</td>
+        <td>{{ user.mobile }}</td>
+        <td>{{ user.address }}</td>
 
         <td>
-          <div v-if="editingId === user.id" class="d-flex">
-            <button class="btn submitBtn me-3" @click="saveEdit">Update</button>
-            <button class="btn btn-secondary" @click="cancelEdit">Cancel</button>
-          </div>
-          <div v-else class="d-flex">
-            <button class="btn submitBtn me-3" @click="startEdit(user)">Edit</button>
+          <div class="d-flex">
+            <button class="btn submitBtn me-3" @click="goToEditForm(user.id)">Edit</button>
             <button class="btn btn-danger" @click="handleDelete(user.id)">Delete</button>
           </div>
         </td>
