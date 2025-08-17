@@ -1,81 +1,57 @@
-const pool = require('../config/db')
+import * as userService from "../services/userService.js";
+import { validateUser } from "../validators/userValidator.js";
 
-const getUsers = async (req, res) => {
-    try{
-        const result = await pool.query('SELECT * FROM users');
-        res.json(result.rows);
-        
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
-const getUserById = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json(result.rows[0]);
-        
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+export const getUsers = async (req, res) => {
+  try {
+    const users = await userService.getAllUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+};
 
-const createUser = async (req, res) => {
-    try{
-        console.log('Body received:', req.body);
-         const { first_name, last_name, dob, mobile, address } = req.body;
-         const result = await pool.query('INSERT INTO users (first_name, last_name, dob, mobile, address) VALUES ($1, $2, $3, $4, $5) returning *', [first_name, last_name, dob, mobile, address]);
-         res.status(201).json(result.rows[0]);
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+export const getUserById = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+};
 
-const updateUser = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const { first_name, last_name, dob, mobile, address } = req.body;
-        const result = await pool.query('UPDATE users SET first_name=$1, last_name=$2, dob=$3, mobile=$4, address=$5 WHERE id=$6 RETURNING *', [first_name, last_name, dob, mobile, address, id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json(result.rows[0]);
+export const createUser = async (req, res) => {
+  try {
+    const errors = validateUser(req.body);
+    if (errors) return res.status(400).json({ errors });
 
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+    const user = await userService.createUser(req.body);
+    res.status(201).json(user);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+};
 
-const deleteUser = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const result = await pool.query('DELETE FROM users WHERE id=$1 RETURNING *', [id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({message: 'User not found'});
-        }
-        res.json(result.rows[0]);
-    }
-    catch(err){
-        console.log(err.message);
-        res.status(500).send('Server Error');
-    }
-}
+export const updateUser = async (req, res) => {
+  try {
+    const errors = validateUser(req.body);
+    if (errors) return res.status(400).json({ errors });
 
-module.exports = {
-    getUsers,
-    getUserById,
-    createUser,
-    updateUser,
-    deleteUser
-}
+    const user = await userService.updateUser(req.params.id, req.body);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await userService.deleteUser(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    res.status(500).send("Server error");
+  }
+};
