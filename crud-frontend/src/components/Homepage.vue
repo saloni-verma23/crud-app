@@ -7,13 +7,12 @@ import { useRouter } from 'vue-router';
 const users = ref([]);
 const router = useRouter();
 
-onMounted(async () => {
-  users.value = await getUsers();
-});
+onMounted(loadUsers);
 
 async function loadUsers() {
   users.value = await getUsers();
 }
+
 
 function goToUserForm() {
   router.push('/user/save');
