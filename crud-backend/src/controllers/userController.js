@@ -1,57 +1,65 @@
 import * as userService from "../services/userService.js";
 import { validateUser } from "../validators/userValidator.js";
 
+const response = ( res, success, message, data = null, status = 200 ) => {
+  res.status(status).json({success, message, data});
+}
+
 export const getUsers = async (req, res) => {
   try {
     const users = await userService.getAllUsers();
-    res.json(users);
+    response(res, true, "Users retrieved successfully", users)
   } catch (err) {
-    res.status(500).send("Server error");
+    response(res, false, "Server error", null, 500);
   }
 };
 
 export const getUserById = async (req, res) => {
   try {
     const user = await userService.getUserById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    if (!user) return response(res, false, "User not found", null, 404);
+    response(res, true, "User retrieved successfully", user);
   } catch (err) {
-    res.status(500).send("Server error");
+    response(res, false, "Server error", null, 500);
   }
 };
 
 export const createUser = async (req, res) => {
+  console.log("REQ BODY RAW:", req.body);
   try {
     const errors = validateUser(req.body);
-    if (errors) return res.status(400).json({ errors });
+    if (errors) return response(res, false, "Validation error", errors, 400);
 
     const user = await userService.createUser(req.body);
-    res.status(201).json(user);
+    response(res, true, "User created successfully", user, 201);
   } catch (err) {
-    res.status(500).send("Server error");
+     if (err.code === "23505") {
+      return response(res, false, "Mobile number already exists", null, 400);
+    }
+    response(res, false, "Server error", null, 500);
   }
 };
 
 export const updateUser = async (req, res) => {
   try {
     const errors = validateUser(req.body);
-    if (errors) return res.status(400).json({ errors });
+    if (errors) return response(res, false, "Validation error", errors, 400);
 
     const user = await userService.updateUser(req.params.id, req.body);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) return response(res, false, "User not found", null, 404);
 
-    res.json(user);
+    response(res, true, "User updated successfully", user);
   } catch (err) {
-    res.status(500).send("Server error");
+    response(res, false, "Server error", null, 500);
   }
 };
 
 export const deleteUser = async (req, res) => {
   try {
     const user = await userService.deleteUser(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.json(user);
+    if (!user) return response(res, false, "User not found", null, 404);
+    response(res, true, "User deleted successfully", null, 200);
   } catch (err) {
-    res.status(500).send("Server error");
+    response(res, false, "Server error", null, 500);
   }
 };
