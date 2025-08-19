@@ -13,7 +13,6 @@ async function loadUsers() {
   users.value = await getUsers();
 }
 
-
 function goToUserForm() {
   router.push('/user/save');
 }
