@@ -1,81 +1,65 @@
-const pool = require('../config/db')
+import * as userService from "../services/userService.js";
+import { validateUser } from "../validators/userValidator.js";
 
-const getUsers = async (req, res) => {
-    try{
-        const result = await pool.query('SELECT * FROM users');
-        res.json(result.rows);
-        
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
-const getUserById = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const result = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json(result.rows[0]);
-        
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
+const response = ( res, success, message, data = null, status = 200 ) => {
+  res.status(status).json({success, message, data});
 }
 
-const createUser = async (req, res) => {
-    try{
-        console.log('Body received:', req.body);
-         const { first_name, last_name, dob, mobile, address } = req.body;
-         const result = await pool.query('INSERT INTO users (first_name, last_name, dob, mobile, address) VALUES ($1, $2, $3, $4, $5) returning *', [first_name, last_name, dob, mobile, address]);
-         res.status(201).json(result.rows[0]);
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+export const getUsers = async (req, res) => {
+  try {
+    const users = await userService.getAllUsers();
+    response(res, true, "Users retrieved successfully", users)
+  } catch (err) {
+    response(res, false, "Server error", null, 500);
+  }
+};
 
-const updateUser = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const { first_name, last_name, dob, mobile, address } = req.body;
-        const result = await pool.query('UPDATE users SET first_name=$1, last_name=$2, dob=$3, mobile=$4, address=$5 WHERE id=$6 RETURNING *', [first_name, last_name, dob, mobile, address, id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({ message: 'User not found' });
-        }
-        res.json(result.rows[0]);
+export const getUserById = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    if (!user) return response(res, false, "User not found", null, 404);
+    response(res, true, "User retrieved successfully", user);
+  } catch (err) {
+    response(res, false, "Server error", null, 500);
+  }
+};
 
-    }
-    catch(err){
-        console.error(err.message);
-        res.status(500).send('Server error');
-    }
-}
+export const createUser = async (req, res) => {
+  console.log("REQ BODY RAW:", req.body);
+  try {
+    const errors = validateUser(req.body);
+    if (errors) return response(res, false, "Validation error", errors, 400);
 
-const deleteUser = async (req, res) => {
-    try{
-        const id = req.params.id;
-        const result = await pool.query('DELETE FROM users WHERE id=$1 RETURNING *', [id]);
-        if (result.rows.length == 0 ){
-            return res.status(404).json({message: 'User not found'});
-        }
-        res.json(result.rows[0]);
+    const user = await userService.createUser(req.body);
+    response(res, true, "User created successfully", user, 201);
+  } catch (err) {
+     if (err.code === "23505") {
+      return response(res, false, "Mobile number already exists", null, 400);
     }
-    catch(err){
-        console.log(err.message);
-        res.status(500).send('Server Error');
-    }
-}
+    response(res, false, "Server error", null, 500);
+  }
+};
 
-module.exports = {
-    getUsers,
-    getUserById,
-    createUser,
-    updateUser,
-    deleteUser
-}
+export const updateUser = async (req, res) => {
+  try {
+    const errors = validateUser(req.body);
+    if (errors) return response(res, false, "Validation error", errors, 400);
+
+    const user = await userService.updateUser(req.params.id, req.body);
+    if (!user) return response(res, false, "User not found", null, 404);
+
+    response(res, true, "User updated successfully", user);
+  } catch (err) {
+    response(res, false, "Server error", null, 500);
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await userService.deleteUser(req.params.id);
+    if (!user) return response(res, false, "User not found", null, 404);
+    response(res, true, "User deleted successfully", null, 200);
+  } catch (err) {
+    response(res, false, "Server error", null, 500);
+  }
+};

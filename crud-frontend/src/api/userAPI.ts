@@ -18,10 +18,18 @@ const API = axios.create({
 export const getUsers = async () => {
   try {
     const response = await API.get('/');
-    console.log(response.data);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error(error);
+    throw error;
+  }
+};
+export const getUserById = async (id: number) => {
+  try {
+    const response = await API.get(`/${id}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching user by ID');
     throw error;
   }
 };
@@ -29,8 +37,7 @@ export const getUsers = async () => {
 export const createUser = async (data: User) => {
   try {
     const response = await API.post('/', data);
-    console.log('User created successfully');
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Error creating user');
     throw error;
@@ -40,8 +47,7 @@ export const createUser = async (data: User) => {
 export const updateUser = async (id: number, data: User) => {
   try {
     const response = await API.put(`/${id}`, data);
-    console.log(response.data);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     console.error('Error updating user');
     throw error;
@@ -50,8 +56,7 @@ export const updateUser = async (id: number, data: User) => {
 
 export const deleteUser = async (id: number) => {
   try {
-    const response = await API.delete(`/${id}`);
-    console.log(response.data);
+    await API.delete(`/${id}`);
   } catch (error) {
     console.error('Error deleting user');
     throw error;

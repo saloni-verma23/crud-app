@@ -6,7 +6,8 @@
   --dark: #0d1b2a;
 }
 body {
-  background-color: var(--accent);
+  background-color: var(--light);
+  font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
 .table-container .table {
@@ -16,8 +17,8 @@ body {
 }
 
 .table-container .table thead th {
-  background-color: var(--primary) !important;
-  color: var(--light) !important;
+  background-color: var(--secondary) !important;
+  color: white !important;
 }
 
 .table-container .table tbody tr:hover {
