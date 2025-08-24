@@ -10,6 +10,14 @@ body {
   font-family: Georgia, 'Times New Roman', Times, serif;
 }
 
+.user-heading {
+  color: var(--dark);
+  background-color: white;
+  font-size: 2rem;
+  font-weight: bold;
+  border: 5px groove var(--accent);
+  padding: 0.5rem;
+}
 .table-container .table {
   width: 100%;
   border-radius: 10px;

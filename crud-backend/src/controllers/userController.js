@@ -1,14 +1,22 @@
 import * as userService from "../services/userService.js";
 import { validateUser } from "../validators/userValidator.js";
 
-const response = ( res, success, message, data = null, status = 200 ) => {
-  res.status(status).json({success, message, data});
+const response = ( res, success, message, data = null, status = 200, meta = null) => {
+  res.status(status).json({success, message, data, meta});
 }
 
 export const getUsers = async (req, res) => {
   try {
-    const users = await userService.getAllUsers();
-    response(res, true, "Users retrieved successfully", users)
+    const { page=1, limit=10, sortBy="created_at", order="desc" } = req.query;
+    const users = await userService.getAllUsers({
+      page,
+      limit,
+      sortBy,
+      order
+    });
+    const totalUsers = await userService.getUserCount();
+
+    response(res, true, "Users retrieved successfully", users, 200, { totalUsers });
   } catch (err) {
     response(res, false, "Server error", null, 500);
   }
@@ -24,8 +32,21 @@ export const getUserById = async (req, res) => {
   }
 };
 
+export const searchUsers = async (req, res) => {
+  try{
+    const { query, page = 1, limit = 10, sortBy = "first_name", order = "asc" } = req.query;
+    const { users, totalUsers } = await userService.searchUsers({ query, page, limit, sortBy, order });
+    if(users.length > 0) {
+      response(res, true, "Users retrieved successfully", users, 200, {totalUsers});
+    } else {
+      response(res, false, "No users found", null, 404);
+    }
+  } catch (err) {
+    response(res, false, "Server error", null, 500);
+}
+};
+
 export const createUser = async (req, res) => {
-  console.log("REQ BODY RAW:", req.body);
   try {
     const errors = validateUser(req.body);
     if (errors) return response(res, false, "Validation error", errors, 400);
