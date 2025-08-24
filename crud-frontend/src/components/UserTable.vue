@@ -1,13 +1,27 @@
 <script setup>
 import { deleteUser } from '../api/userAPI';
 import { useRouter } from 'vue-router';
+import { computed } from 'vue';
 
-defineProps({
+const props = defineProps({
   users: {
     type: Array,
   },
+  totalUsers: {
+    type: Number,
+    default: 0,
+  },
+  currentPage: {
+    type: Number,
+    default: 1,
+  },
+  usersPerPage: {
+    type: Number,
+    default: 2,
+  },
 });
-const emit = defineEmits(['refresh']);
+
+const emit = defineEmits(['refresh', 'update:currentPage']);
 const router = useRouter();
 
 const goToEditForm = (id) => {
@@ -26,6 +40,29 @@ async function handleDelete(id) {
     emit('refresh');
   }
 }
+
+const totalPages = computed(() => {
+  return Math.ceil(props.totalUsers / props.usersPerPage);
+});
+
+const goToPrevPage = () => {
+  if (props.currentPage > 1) {
+    emit('update:currentPage', props.currentPage - 1);
+  }
+};
+
+const goToNextPage = () => {
+  if (props.currentPage < totalPages.value) {
+    emit('update:currentPage', props.currentPage + 1);
+    console.log(props.currentPage);
+  }
+};
+
+const goToPage = (page) => {
+  if (page > 0 && page <= totalPages.value) {
+    emit('update:currentPage', page);
+  }
+};
 </script>
 
 <template>
@@ -41,8 +78,8 @@ async function handleDelete(id) {
         <th>Action</th>
       </tr>
     </thead>
-    <tbody>
-      <tr v-for="(user, index) in users" :key="user.id">
+    <tbody v-if="props.users.length > 0">
+      <tr v-for="(user, index) in props.users" :key="user.id">
         <td>{{ index + 1 }}</td>
 
         <td>{{ user.first_name }}</td>
@@ -57,6 +94,44 @@ async function handleDelete(id) {
             <button class="btn btn-danger" @click="handleDelete(user.id)">Delete</button>
           </div>
         </td>
+      </tr>
+
+      <!-- pagination code -->
+      <tr>
+        <td colspan="7">
+          <div class="d-flex justify-content-center align-items-center">
+            <button
+              class="btn btn-outline-primary me-2"
+              :disabled="props.currentPage <= 1"
+              @click="goToPrevPage"
+            >
+              Previous
+            </button>
+
+            <span v-for="n in totalPages" :key="n" class="mx-1">
+              <button
+                class="btn"
+                :class="n === props.currentPage ? 'btn-primary' : 'btn-outline-primary'"
+                @click="goToPage(n)"
+                :disabled="n === props.currentPage"
+              >
+                {{ n }}
+              </button>
+            </span>
+            <button
+              class="btn btn-outline-primary ms-2"
+              :disabled="props.currentPage >= totalPages"
+              @click="goToNextPage"
+            >
+              Next
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+    <tbody v-else>
+      <tr>
+        <td colspan="7" class="text-center">No users found.</td>
       </tr>
     </tbody>
   </table>

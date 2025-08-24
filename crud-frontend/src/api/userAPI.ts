@@ -11,14 +11,25 @@ export interface User {
   updated_at?: string;
 }
 
+type SearchParams = {
+  query: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  order?: string;
+};
+
 const API = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/users`,
 });
 
-export const getUsers = async () => {
+export const getUsers = async ({ page = 1, limit = 10, sortBy = 'created_at', order = 'desc' }) => {
   try {
-    const response = await API.get('/');
-    return response.data.data;
+    const response = await API.get('/', {
+      params: { page, limit, sortBy, order },
+    });
+    const totalUsers = response.data.meta.totalUsers;
+    return { users: response.data.data, totalUsers };
   } catch (error) {
     console.error(error);
     throw error;
@@ -31,6 +42,17 @@ export const getUserById = async (id: number) => {
   } catch (error) {
     console.error('Error fetching user by ID');
     throw error;
+  }
+};
+
+export const searchUsers = async ({ query, page, limit, sortBy, order }: SearchParams) => {
+  try {
+    const response = await API.get('/search', { params: { query, page, limit, sortBy, order } });
+    const totalUsers = response.data.meta.totalUsers;
+    return { users: response.data.data || [], totalUsers };
+  } catch (error) {
+    console.error('Error searching users');
+    return { users: [], totalUsers: 0 };
   }
 };
 
