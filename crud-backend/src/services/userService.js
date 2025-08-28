@@ -1,38 +1,10 @@
 import pool from "../config/db.js";
 
-export const getAllUsers = async ({ page, limit, sortBy, order }) => {
-  const offset = (page - 1) * limit;
-
-  const sortByVariants = ["first_name", "dob", "created_at"];
-  const orderVariants = ["asc", "desc"];
-
-  !sortByVariants.includes(sortBy)
-    ? (sortBy = "created_at")
-    : (sortBy = sortBy.toLowerCase());
-
-  !orderVariants.includes(order)
-    ? (order = "desc")
-    : (order = order.toLowerCase());
-
-  const result = await pool.query(
-    `SELECT * FROM users ORDER BY ${sortBy} ${order} LIMIT $1 OFFSET $2`,
-    [limit, offset]
-  );
-  return result.rows;
-};
-
-export const getUserCount = async () => {
-  const result = await pool.query("SELECT COUNT(*) FROM users");
-  return parseInt(result.rows[0].count, 10);
-};
-
-export const getUserById = async (id) => {
-  const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-  return result.rows[0];
-};
-
-export const searchUsers = async ({query, page, limit, sortBy, order}) => {
-  const offset = (page - 1) * limit;
+export const getAllUsers = async ({ query, page, limit, sortBy, order }) => {
+  const pageNum = parseInt(page, 10) || 1;
+  const limitNum = parseInt(limit, 10) || 10;
+  const offset = (pageNum - 1) * limitNum;
+  const search = query ? `%${query}%` : "%%";
 
   const sortByVariants = ["first_name", "dob", "created_at"];
   const orderVariants = ["asc", "desc"];
@@ -45,18 +17,27 @@ export const searchUsers = async ({query, page, limit, sortBy, order}) => {
     ? (order = "asc")
     : (order = order.toLowerCase());
 
-  
-  const ResultCount = await pool.query(
-    "SELECT Count(*)::int as count FROM users WHERE first_name ILIKE $1 OR last_name ILIKE $1",
-    [`%${query}%`]
-  );
+  try {
+    const ResultCount = await pool.query(
+      "SELECT Count(*)::int as count FROM users WHERE first_name ILIKE $1 OR last_name ILIKE $1",
+      [search]
+    );
 
-  const users = await pool.query(
-    `SELECT * FROM users WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY ${sortBy} ${order} LIMIT $2 OFFSET $3`,
-    [`%${query}%`, limit, offset]
-  );
+    const users = await pool.query(
+      `SELECT * FROM users WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY ${sortBy} ${order} LIMIT $2 OFFSET $3`,
+      [search, limitNum, offset]
+    );
 
-  return { users: users.rows, totalUsers: ResultCount.rows[0].count };
+    return { users: users.rows, totalUsers: ResultCount.rows[0].count };
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    throw new Error("Database query failed");
+  }
+};
+
+export const getUserById = async (id) => {
+  const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+  return result.rows[0];
 };
 
 export const createUser = async ({

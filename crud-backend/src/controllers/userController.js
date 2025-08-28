@@ -6,20 +6,18 @@ const response = ( res, success, message, data = null, status = 200, meta = null
 }
 
 export const getUsers = async (req, res) => {
-  try {
-    const { page=1, limit=10, sortBy="created_at", order="desc" } = req.query;
-    const users = await userService.getAllUsers({
-      page,
-      limit,
-      sortBy,
-      order
-    });
-    const totalUsers = await userService.getUserCount();
-
-    response(res, true, "Users retrieved successfully", users, 200, { totalUsers });
+   try{
+    const { query: searchTerm, page = 1, limit = 10, sortBy = "first_name", order = "asc" } = req.query;
+    const { users, totalUsers } = await userService.getAllUsers({  query: searchTerm, page, limit, sortBy, order });
+    if(users.length > 0) {
+      response(res, true, "Users retrieved successfully", {totalUsers, users}, 200);
+    } else {
+      response(res, true, "No users found", [], 200);
+    }
   } catch (err) {
+    console.error("Controller error:", err);
     response(res, false, "Server error", null, 500);
-  }
+}
 };
 
 export const getUserById = async (req, res) => {
@@ -30,20 +28,6 @@ export const getUserById = async (req, res) => {
   } catch (err) {
     response(res, false, "Server error", null, 500);
   }
-};
-
-export const searchUsers = async (req, res) => {
-  try{
-    const { query, page = 1, limit = 10, sortBy = "first_name", order = "asc" } = req.query;
-    const { users, totalUsers } = await userService.searchUsers({ query, page, limit, sortBy, order });
-    if(users.length > 0) {
-      response(res, true, "Users retrieved successfully", users, 200, {totalUsers});
-    } else {
-      response(res, false, "No users found", null, 404);
-    }
-  } catch (err) {
-    response(res, false, "Server error", null, 500);
-}
 };
 
 export const createUser = async (req, res) => {

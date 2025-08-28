@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue';
-import { getUsers, searchUsers } from '../api/userAPI';
+import { getUsers } from '../api/userAPI';
 import UserTable from './UserTable.vue';
 import { useRouter } from 'vue-router';
 
 const users = ref([]);
 const totalUsers = ref(0);
 const currentPage = ref(1);
-const usersPerPage = ref(5);
+const usersPerPage = ref(10);
 const sortBy = ref('');
-const sortOrder = ref('');
+const sortOrder = ref<'asc' | 'desc' | undefined>(undefined);
 
 const router = useRouter();
 const searchQuery = ref('');
@@ -27,33 +27,26 @@ const sortByOptions = [
   },
 ];
 const sortOrderOptions = [
-  { value: 'asc', label: 'Ascending' },
-  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'asc' },
+  { value: 'desc', label: 'desc' },
 ];
 onMounted(loadUsers);
 
 async function loadUsers() {
-  let userData;
-
-  if (searchQuery.value) {
-    userData = await searchUsers({
-      query: searchQuery.value,
-      page: currentPage.value,
-      limit: usersPerPage.value,
-      sortBy: sortBy.value || 'first_name',
-      order: sortOrder.value || 'asc',
-    });
-  } else {
-    userData = await getUsers({
+  try {
+    const userData = await getUsers({
+      query: searchQuery.value || undefined,
       page: currentPage.value,
       limit: usersPerPage.value,
       sortBy: sortBy.value || 'created_at',
       order: sortOrder.value || 'desc',
     });
-  }
 
-  users.value = userData.users;
-  totalUsers.value = userData.totalUsers;
+    users.value = userData.users;
+    totalUsers.value = userData.totalUsers;
+  } catch (error) {
+    console.error('Failed to load users:', error);
+  }
 }
 
 async function handleSearchInput() {
@@ -72,7 +65,7 @@ function goToUserForm() {
       <h1 class="text-center mb-4 user-heading">User Management Panel</h1>
       <div class="row align-items-center">
         <!-- Search bar -->
-        <div class="col-md-4 d-flex">
+        <div class="col-md-6 d-flex">
           <input
             class="form-control me-2"
             type="search"
@@ -91,16 +84,6 @@ function goToUserForm() {
             </option>
           </select>
         </div>
-        <!-- Sort Order: -->
-        <div class="col-md-2">
-          <select class="form-select" v-model="sortOrder" @change="loadUsers">
-            <option value="">Sort Order:</option>
-            <option v-for="option in sortOrderOptions" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>
-
         <!-- User button-->
         <div class="col-md-4 text-end">
           <button class="btn submitBtn ms-auto" @click="goToUserForm">Add User</button>
@@ -112,6 +95,9 @@ function goToUserForm() {
         :totalUsers="totalUsers"
         v-model:currentPage="currentPage"
         :usersPerPage="usersPerPage"
+        v-model:sortBy="sortBy"
+        v-model:sortOrder="sortOrder"
+        :sortOrderOptions="sortOrderOptions"
       />
     </div>
   </div>

@@ -4,24 +4,16 @@ import { useRouter } from 'vue-router';
 import { computed } from 'vue';
 
 const props = defineProps({
-  users: {
-    type: Array,
-  },
-  totalUsers: {
-    type: Number,
-    default: 0,
-  },
-  currentPage: {
-    type: Number,
-    default: 1,
-  },
-  usersPerPage: {
-    type: Number,
-    default: 2,
-  },
+  users: Array,
+  totalUsers: Number,
+  currentPage: Number,
+  usersPerPage: Number,
+  sortBy: String,
+  sortOrder: String,
+  sortOrderOptions: Array,
 });
 
-const emit = defineEmits(['refresh', 'update:currentPage']);
+const emit = defineEmits(['refresh', 'update:currentPage', 'update:sortBy', 'update:sortOrder']);
 const router = useRouter();
 
 const goToEditForm = (id) => {
@@ -63,6 +55,36 @@ const goToPage = (page) => {
     emit('update:currentPage', page);
   }
 };
+
+const paginationRange = computed(() => {
+  const total = totalPages.value;
+  const current = props.currentPage;
+  const range = [];
+
+  let start = current;
+  let end = current + 2;
+
+  if (end > total) {
+    end = total;
+    start = Math.max(1, end - 2);
+  }
+
+  for (let i = start; i <= end; i++) {
+    range.push(i);
+  }
+
+  if (start > 1) {
+    range.unshift('...');
+    range.unshift(1);
+  }
+
+  if (end < total) {
+    range.push('...');
+    range.push(total);
+  }
+
+  return range;
+});
 </script>
 
 <template>
@@ -70,9 +92,49 @@ const goToPage = (page) => {
     <thead class="table-header">
       <tr>
         <th>Sr.No.</th>
-        <th>First Name</th>
+        <th>
+          First Name
+          <template v-if="props.sortBy === 'first_name'">
+            <select
+              class="form-select d-inline w-auto ms-2"
+              :value="props.sortOrder"
+              @change="
+                emit('update:sortOrder', $event.target.value);
+                emit('refresh');
+              "
+            >
+              <option
+                v-for="option in props.sortOrderOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </template>
+        </th>
         <th>Last Name</th>
-        <th>Date of Birth</th>
+        <th>
+          Date of Birth
+          <template v-if="props.sortBy === 'dob'">
+            <select
+              class="form-select d-inline w-auto ms-2"
+              :value="props.sortOrder"
+              @change="
+                emit('update:sortOrder', $event.target.value);
+                emit('refresh');
+              "
+            >
+              <option
+                v-for="option in props.sortOrderOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </template>
+        </th>
         <th>Mobile</th>
         <th>Address</th>
         <th>Action</th>
@@ -80,8 +142,7 @@ const goToPage = (page) => {
     </thead>
     <tbody v-if="props.users.length > 0">
       <tr v-for="(user, index) in props.users" :key="user.id">
-        <td>{{ index + 1 }}</td>
-
+        <td>{{ (props.currentPage - 1) * props.usersPerPage + index + 1 }}</td>
         <td>{{ user.first_name }}</td>
         <td>{{ user.last_name }}</td>
         <td>{{ formatDate(user.dob) }}</td>
@@ -108,23 +169,32 @@ const goToPage = (page) => {
               Previous
             </button>
 
-            <span v-for="n in totalPages" :key="n" class="mx-1">
+            <span v-for="page in paginationRange" :key="page" class="mx-1">
               <button
                 class="btn"
-                :class="n === props.currentPage ? 'btn-primary' : 'btn-outline-primary'"
-                @click="goToPage(n)"
-                :disabled="n === props.currentPage"
+                :class="page === props.currentPage ? 'btn-primary' : 'btn-outline-primary'"
+                @click="goToPage(page)"
+                :disabled="page === props.currentPage"
               >
-                {{ n }}
+                {{ page }}
               </button>
             </span>
             <button
-              class="btn btn-outline-primary ms-2"
+              class="btn btn-outline-primary ms-2 me-5"
               :disabled="props.currentPage >= totalPages"
               @click="goToNextPage"
             >
               Next
             </button>
+            <select
+              class="form-select w-auto"
+              name="page"
+              id="page"
+              :value="props.currentPage"
+              @change="goToPage(Number($event.target.value))"
+            >
+              <option v-for="n in totalPages" :key="n" :value="n">{{ n }}</option>
+            </select>
           </div>
         </td>
       </tr>
