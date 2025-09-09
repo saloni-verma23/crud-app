@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",         
+    "module": "NodeNext",              
+    "moduleResolution": "NodeNext",   
+    "strict": true,                   
+    "exactOptionalPropertyTypes": true, 
+    "esModuleInterop": true,            
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,              
+    "allowImportingTsExtensions": false,
+    "verbatimModuleSyntax": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "types": ["node"],
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
