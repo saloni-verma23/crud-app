@@ -1,17 +1,23 @@
 import * as userService from "../services/userService.js";
 import { validateUser } from "../validators/userValidator.js";
 
-const response = ( res, success, message, data = null, status = 200 ) => {
-  res.status(status).json({success, message, data});
+const response = ( res, success, message, data = null, status = 200, meta = null) => {
+  res.status(status).json({success, message, data, meta});
 }
 
 export const getUsers = async (req, res) => {
-  try {
-    const users = await userService.getAllUsers();
-    response(res, true, "Users retrieved successfully", users)
+   try{
+    const { query: searchTerm, page = 1, limit = 10, sortBy = "first_name", order = "asc" } = req.query;
+    const { users, totalUsers } = await userService.getAllUsers({  query: searchTerm, page, limit, sortBy, order });
+    if(users.length > 0) {
+      response(res, true, "Users retrieved successfully", {totalUsers, users}, 200);
+    } else {
+      response(res, true, "No users found", [], 200);
+    }
   } catch (err) {
+    console.error("Controller error:", err);
     response(res, false, "Server error", null, 500);
-  }
+}
 };
 
 export const getUserById = async (req, res) => {
@@ -25,7 +31,6 @@ export const getUserById = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  console.log("REQ BODY RAW:", req.body);
   try {
     const errors = validateUser(req.body);
     if (errors) return response(res, false, "Validation error", errors, 400);

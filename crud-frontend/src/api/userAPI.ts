@@ -11,19 +11,37 @@ export interface User {
   updated_at?: string;
 }
 
+interface GetUsersParams {
+  query?: string;
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  order?: 'asc' | 'desc';
+}
+
 const API = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/users`,
 });
 
-export const getUsers = async () => {
+export const getUsers = async ({
+  query,
+  page = 1,
+  limit = 10,
+  sortBy = 'created_at',
+  order = 'desc',
+}: GetUsersParams) => {
   try {
-    const response = await API.get('/');
-    return response.data.data;
+    const response = await API.get('/', {
+      params: { query, page, limit, sortBy, order },
+    });
+    const totalUsers = response.data.data.totalUsers;
+    return { users: response.data.data.users || [], totalUsers };
   } catch (error) {
     console.error(error);
     throw error;
   }
 };
+
 export const getUserById = async (id: number) => {
   try {
     const response = await API.get(`/${id}`);
@@ -33,6 +51,17 @@ export const getUserById = async (id: number) => {
     throw error;
   }
 };
+
+// export const searchUsers = async ({ query, page, limit, sortBy, order }: SearchParams) => {
+//   try {
+//     const response = await API.get('/search', { params: { query, page, limit, sortBy, order } });
+//     const totalUsers = response.data.meta.totalUsers;
+//     return { users: response.data.data || [], totalUsers };
+//   } catch (error) {
+//     console.error('Error searching users');
+//     return { users: [], totalUsers: 0 };
+//   }
+// };
 
 export const createUser = async (data: User) => {
   try {

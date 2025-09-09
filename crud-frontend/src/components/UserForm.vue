@@ -24,7 +24,13 @@ onMounted(async () => {
     isFormEditable.value = true;
     const existingUser = await getUserById(Number(route.params.id));
 
-    existingUser.dob = existingUser.dob ? existingUser.dob.split('T')[0] : '';
+    if (existingUser.dob) {
+      const date = new Date(existingUser.dob);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      existingUser.dob = `${year}-${month}-${day}`;
+    }
 
     userData.value = existingUser;
   }
