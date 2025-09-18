@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
-import * as userService from "../services/userService.js";
-import { validateUser } from "../validators/userValidator.js";
+import * as userService from "../services/userService";
+import { validateUser } from "../validators/userValidator";
+import { UserQueryParams } from "../types";
 
 const response = <T>(
   res: Response,
@@ -21,16 +22,10 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       limit = "10",
       sortBy = "first_name",
       order = "asc",
-    } = req.query as {
-      query?: string;
-      page?: string;
-      limit?: string;
-      sortBy?: string;
-      order?: "asc" | "desc";
-    };
+    } = req.query as UserQueryParams;
 
     const { users, totalUsers } = await userService.getAllUsers({
-      query: searchTerm, // now optional
+      query: searchTerm,
       page: Number(page),
       limit: Number(limit),
       sortBy,
@@ -76,6 +71,7 @@ export const createUser = async (
     if (errors) return response(res, false, "Validation error", errors, 400);
 
     const user = await userService.createUser(req.body);
+    if (!user) return response(res, false, "User creation failed", null, 500);
     response(res, true, "User created successfully", user, 201);
   } catch (err: any) {
     if (err.code === "23505") {

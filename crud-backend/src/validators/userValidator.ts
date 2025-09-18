@@ -1,4 +1,4 @@
-import type { User } from "../services/userService.js";
+import { User } from "../types";
 
 type UserInput = Omit<User, "id" | "created_at">;
 

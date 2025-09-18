@@ -1,21 +1,5 @@
-import pool from "../config/db.js";
-
-export interface User {
-  id: number;
-  first_name: string;
-  last_name: string;
-  dob: Date;
-  mobile: string;
-  address: string;
-  created_at: Date;
-}
-interface GetAllUsersParams {
-  query?: string | undefined;
-  page?: number | string;
-  limit?: number | string;
-  sortBy?: string;
-  order?: "asc" | "desc" | string;
-}
+import pool from "../config/db";
+import { User, GetAllUsersParams } from "../types";
 
 export const getAllUsers = async ({
   query,
@@ -44,7 +28,10 @@ export const getAllUsers = async ({
     );
 
     const users = await pool.query<User>(
-      `SELECT * FROM users WHERE first_name ILIKE $1 OR last_name ILIKE $1 ORDER BY ${sortBy} ${order} LIMIT $2 OFFSET $3`,
+      `SELECT * FROM users 
+       WHERE first_name ILIKE $1 OR last_name ILIKE $1 
+       ORDER BY ${sortBy} ${order} 
+       LIMIT $2 OFFSET $3`,
       [search, limitNum, offset]
     );
 
@@ -67,13 +54,10 @@ export const getUserById = async (
   return result.rows[0] || null;
 };
 
-export const createUser = async ({
-  first_name,
-  last_name,
-  dob,
-  mobile,
-  address,
-}: Omit<User, "id" | "created_at">): Promise<User> => {
+export const createUser = async (
+  userData: Omit<User, "id" | "created_at">
+): Promise<User> => {
+  const { first_name, last_name, dob, mobile, address } = userData;
   const result = await pool.query<User>(
     "INSERT INTO users (first_name, last_name, dob, mobile, address) VALUES ($1, $2, $3, $4, $5) returning *",
     [first_name, last_name, dob, mobile, address]
@@ -83,14 +67,9 @@ export const createUser = async ({
 
 export const updateUser = async (
   id: string | number,
-  {
-    first_name,
-    last_name,
-    dob,
-    mobile,
-    address,
-  }: Omit<User, "id" | "created_at">
+  userData: Omit<User, "id" | "created_at">
 ): Promise<User | null> => {
+  const { first_name, last_name, dob, mobile, address } = userData;
   const result = await pool.query<User>(
     "UPDATE users SET first_name=$1, last_name=$2, dob=$3, mobile=$4, address=$5 WHERE id=$6 RETURNING *",
     [first_name, last_name, dob, mobile, address, id]
