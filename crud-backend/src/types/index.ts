@@ -31,7 +31,6 @@ export interface ApiResponse<T> {
   message: string;
   data: T | null;
   status?: number;
-  meta?: unknown;
 }
 
 export type ExpressResponse<T> = (res: Response, body: ApiResponse<T>) => void;

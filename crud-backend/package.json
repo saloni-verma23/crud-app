@@ -5,21 +5,26 @@
   "scripts": {
     "dev": "ts-node-dev --env-file=.env --respawn --transpile-only --project tsconfig.json src/app.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/app.js"
+    "start": "node dist/app.js",
+    "seed:admin": "npm run build && node --env-file=.env dist/seeders/createAdminSeeder.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
     "pg": "^8.16.3"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.11.30",
     "@types/pg": "^8.10.2",
     "ts-node-dev": "^2.0.0",
