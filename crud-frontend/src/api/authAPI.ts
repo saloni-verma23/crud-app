@@ -8,3 +8,8 @@ export async function adminLogin(payload: { email: string; password: string }) {
   }
   return res.data;
 }
+
+export function logout() {
+  localStorage.removeItem('auth_token');
+  window.location.href = '/';
+}

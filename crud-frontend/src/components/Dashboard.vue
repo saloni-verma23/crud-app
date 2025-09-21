@@ -1,104 +1,144 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
-import { getUsers } from '../api/userAPI';
-import UserTable from './UserTable.vue';
+import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { useUserStore } from '../store/userStore';
+import UserTable from './UserTable.vue';
 
-const users = ref([]);
-const totalUsers = ref(0);
-const currentPage = ref(1);
-const usersPerPage = ref(10);
-const sortBy = ref('');
-const sortOrder = ref<'asc' | 'desc' | undefined>(undefined);
-
+const userStore = useUserStore();
 const router = useRouter();
-const searchQuery = ref('');
 
-watch(currentPage, loadUsers);
-
-const sortByOptions = [
-  {
-    value: 'first_name',
-    label: 'First Name',
-  },
-  {
-    value: 'dob',
-    label: 'Date of Birth',
-  },
-];
-const sortOrderOptions = [
-  { value: 'asc', label: 'asc' },
-  { value: 'desc', label: 'desc' },
-];
-onMounted(loadUsers);
-
-async function loadUsers() {
-  try {
-    const userData = await getUsers({
-      query: searchQuery.value || undefined,
-      page: currentPage.value,
-      limit: usersPerPage.value,
-      sortBy: sortBy.value || 'created_at',
-      order: sortOrder.value || 'desc',
-    });
-
-    users.value = userData.users;
-    totalUsers.value = userData.totalUsers;
-  } catch (error) {
-    console.error('Failed to load users:', error);
+watch(
+  () => userStore.currentPage,
+  () => {
+    userStore.fetchUsers();
   }
-}
+);
 
-async function handleSearchInput() {
-  currentPage.value = 1;
-  await loadUsers();
-}
+watch(
+  () => userStore.sortBy,
+  () => {
+    userStore.fetchUsers();
+  }
+);
 
-function goToUserForm() {
+watch(
+  () => userStore.sortOrder,
+  () => {
+    userStore.fetchUsers();
+  }
+);
+
+onMounted(() => {
+  userStore.fetchUsers();
+});
+
+const handleSearchInput = async () => {
+  await userStore.fetchUsers();
+};
+
+const handleSortChange = async () => {
+  await userStore.fetchUsers();
+};
+
+const goToUserForm = () => {
   router.push('/user/save');
-}
+};
 </script>
 
 <template>
   <div>
     <div class="table-container container mx-auto px-5 m-5">
       <h1 class="text-center mb-4 user-heading">User Management Panel</h1>
+
+      <div v-if="userStore.error" class="alert alert-danger alert-dismissible" role="alert">
+        {{ userStore.error }}
+        <button
+          type="button"
+          class="btn-close"
+          @click="userStore.clearError()"
+          aria-label="Close"
+        ></button>
+      </div>
+
       <div class="row align-items-center">
-        <!-- Search bar -->
         <div class="col-md-6 d-flex">
           <input
             class="form-control me-2"
             type="search"
-            placeholder="Search"
+            placeholder="Search users..."
             aria-label="Search"
-            v-model="searchQuery"
+            v-model="userStore.searchQuery"
             @input="handleSearchInput"
           />
         </div>
-        <!-- Sort By: -->
+
         <div class="col-md-2">
-          <select class="form-select" v-model="sortBy" @change="loadUsers">
+          <select class="form-select" v-model="userStore.sortBy" @change="handleSortChange">
             <option disabled value="">Sort By:</option>
-            <option v-for="option in sortByOptions" :key="option.value" :value="option.value">
+            <option
+              v-for="option in userStore.sortByOptions"
+              :key="option.value"
+              :value="option.value"
+            >
               {{ option.label }}
             </option>
           </select>
         </div>
-        <!-- User button-->
+
         <div class="col-md-4 text-end">
-          <button class="btn submitBtn ms-auto" @click="goToUserForm">Add User</button>
+          <button class="btn submitBtn ms-auto" @click="goToUserForm" :disabled="userStore.loading">
+            <span
+              v-if="userStore.loading"
+              class="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Add User
+          </button>
         </div>
       </div>
-      <UserTable
-        :users="users"
-        @refresh="loadUsers"
-        :totalUsers="totalUsers"
-        v-model:currentPage="currentPage"
-        :usersPerPage="usersPerPage"
-        v-model:sortBy="sortBy"
-        v-model:sortOrder="sortOrder"
-        :sortOrderOptions="sortOrderOptions"
-      />
+
+      <div v-if="userStore.loading && userStore.users.length === 0" class="text-center my-4">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+      </div>
+
+      <UserTable />
     </div>
   </div>
 </template>
+
+<style scoped>
+.user-heading {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.submitBtn {
+  background-color: var(--secondary);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.submitBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.table-container {
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+}
+</style>

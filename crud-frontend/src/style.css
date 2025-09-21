@@ -50,3 +50,13 @@ body {
   background-color: white;
   color: var(--accent);
 }
+.primary-btn {
+  background: linear-gradient(90deg, var(--dark) 60%, var(--secondary) 100%);
+  font-weight: 500;
+  color: white;
+  border-radius: 10px;
+}
+.primary-btn:hover {
+  background-color: var(--primary);
+  color: #fff;
+}
