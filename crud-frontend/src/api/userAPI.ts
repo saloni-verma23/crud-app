@@ -1,4 +1,5 @@
-import axios from 'axios';
+// src/api/userAPI.ts
+import api from './client';
 
 export interface User {
   id?: number;
@@ -19,10 +20,6 @@ interface GetUsersParams {
   order?: 'asc' | 'desc';
 }
 
-const API = axios.create({
-  baseURL: `${import.meta.env.VITE_API_BASE_URL}/api/users`,
-});
-
 export const getUsers = async ({
   query,
   page = 1,
@@ -30,64 +27,28 @@ export const getUsers = async ({
   sortBy = 'created_at',
   order = 'desc',
 }: GetUsersParams) => {
-  try {
-    const response = await API.get('/', {
-      params: { query, page, limit, sortBy, order },
-    });
-    const totalUsers = response.data.data.totalUsers;
-    return { users: response.data.data.users || [], totalUsers };
-  } catch (error) {
-    console.error(error);
-    throw error;
-  }
+  const response = await api.get('/users', {
+    params: { query, page, limit, sortBy, order },
+  });
+  const totalUsers = response.data.data.totalUsers;
+  return { users: response.data.data.users || [], totalUsers };
 };
 
 export const getUserById = async (id: number) => {
-  try {
-    const response = await API.get(`/${id}`);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching user by ID');
-    throw error;
-  }
+  const response = await api.get(`/users/${id}`);
+  return response.data.data;
 };
 
-// export const searchUsers = async ({ query, page, limit, sortBy, order }: SearchParams) => {
-//   try {
-//     const response = await API.get('/search', { params: { query, page, limit, sortBy, order } });
-//     const totalUsers = response.data.meta.totalUsers;
-//     return { users: response.data.data || [], totalUsers };
-//   } catch (error) {
-//     console.error('Error searching users');
-//     return { users: [], totalUsers: 0 };
-//   }
-// };
-
 export const createUser = async (data: User) => {
-  try {
-    const response = await API.post('/', data);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error creating user');
-    throw error;
-  }
+  const response = await api.post('/users', data);
+  return response.data.data;
 };
 
 export const updateUser = async (id: number, data: User) => {
-  try {
-    const response = await API.put(`/${id}`, data);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error updating user');
-    throw error;
-  }
+  const response = await api.put(`/users/${id}`, data);
+  return response.data.data;
 };
 
 export const deleteUser = async (id: number) => {
-  try {
-    await API.delete(`/${id}`);
-  } catch (error) {
-    console.error('Error deleting user');
-    throw error;
-  }
+  await api.delete(`/users/${id}`);
 };
