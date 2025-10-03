@@ -1,15 +1,28 @@
 import api from './client';
 
 export async function adminLogin(payload: { email: string; password: string }) {
-  const res = await api.post('/admin/login', payload);
-  const token = res.data?.data;
-  if (token) {
-    localStorage.setItem('auth_token', token);
+  try {
+    const res = await api.post('/admin/login', payload);
+    return res;
+  } catch (e) {
+    console.error(e);
   }
-  return res.data;
+}
+
+export async function fetchMe() {
+  try {
+    const res = await api.get('/admin/me');
+    console.log(res);
+    return res;
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export function logout() {
-  localStorage.removeItem('auth_token');
-  window.location.href = '/';
+  try {
+    api.post('admin/logout');
+  } catch (e) {
+    console.error(e);
+  }
 }

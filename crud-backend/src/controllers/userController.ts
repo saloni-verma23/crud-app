@@ -4,16 +4,6 @@ import { validateUser } from "../validators/userValidator";
 import { UserQueryParams } from "../types";
 import { sendResponse } from "../utils/response";
 
-const response = <T>(
-  res: Response,
-  success: boolean,
-  message: string,
-  data: T | null = null,
-  status = 200
-): void => {
-  res.status(status).json({ success, message, data });
-};
-
 export const getUsers = async (req: Request, res: Response): Promise<void> => {
   try {
     const {
@@ -32,14 +22,13 @@ export const getUsers = async (req: Request, res: Response): Promise<void> => {
       order,
     });
 
-    if (users.length > 0) {
-      sendResponse(res, true, "Users retrieved successfully", {
-        totalUsers,
-        users,
-      });
-    } else {
-      sendResponse(res, true, "No users found", [], 200);
-    }
+    sendResponse(
+      res,
+      true,
+      users.length > 0 ? "Users retrieved successfully" : "No users found",
+      { users, totalUsers },
+      200
+    );
   } catch (err) {
     console.error("Controller error:", err);
     sendResponse(res, false, "Server error", null, 500);
@@ -55,7 +44,8 @@ export const getUserById = async (
       return sendResponse(res, false, "Invalid ID", null, 400);
     }
     const user = await userService.getUserById(req.params.id);
-    if (!user) return response(res, false, "User not found", null, 404);
+    if (!user) return sendResponse(res, false, "User not found", null, 404);
+
     sendResponse(res, true, "User retrieved successfully", user);
   } catch (err) {
     sendResponse(res, false, "Server error", null, 500);
@@ -74,6 +64,7 @@ export const createUser = async (
     const user = await userService.createUser(req.body);
     if (!user)
       return sendResponse(res, false, "User creation failed", null, 500);
+
     sendResponse(res, true, "User created successfully", user, 201);
   } catch (err: any) {
     if (err.code === "23505") {
@@ -122,6 +113,7 @@ export const deleteUser = async (
 
     const user = await userService.deleteUser(req.params.id);
     if (!user) return sendResponse(res, false, "User not found", null, 404);
+
     sendResponse(res, true, "User deleted successfully", null, 200);
   } catch (err) {
     sendResponse(res, false, "Server error", null, 500);

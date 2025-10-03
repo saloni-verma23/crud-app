@@ -6,6 +6,9 @@ const auth = useAuthStore();
 function goToLogin() {
   router.push('/login');
 }
+function goToDashboard(){
+  router.push("/dashboard");
+}
 </script>
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm px-3">
@@ -15,16 +18,28 @@ function goToLogin() {
         <span class="fw-bold fs-5 logo-sub-text">CrudApp</span>
       </a>
       <div class="flex-grow-1"></div>
-      <a v-if="auth.isAuthenticated" href="/dashboard" class="nav-link px-4 py-2">Dashboard</a>
+      <a
+        v-if="auth.autoFetched && auth.isAuthenticated"
+        @click="goToDashboard"
+        class="nav-link px-4 py-2"
+        >Dashboard</a
+      >
+
       <button
-        v-if="!auth.isAuthenticated"
+        v-if="auth.autoFetched && !auth.isAuthenticated"
         class="btn primary-btn px-4 py-2"
         type="button"
         @click="goToLogin"
       >
         Login
       </button>
-      <button v-else class="btn primary-btn px-4 py-2" type="button" @click="auth.handleLogout">
+
+      <button
+        v-if="auth.autoFetched && auth.isAuthenticated"
+        class="btn primary-btn px-4 py-2"
+        type="button"
+        @click="auth.handleLogout"
+      >
         Logout
       </button>
     </div>

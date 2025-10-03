@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { getUsers, createUser, getUserById, updateUser, deleteUser } from '../api/userAPI';
 import type { User } from '../api/userAPI';
+import router from '../router';
 
 export interface UserFilters {
   query?: string;
@@ -12,7 +13,6 @@ export interface UserFilters {
 }
 
 export const useUserStore = defineStore('user', () => {
-  // user states
   const users = ref<User[]>([]);
   const totalUsers = ref(0);
   const currentPage = ref(1);
@@ -90,6 +90,7 @@ export const useUserStore = defineStore('user', () => {
       console.error('Failed to load users:', err);
     } finally {
       loading.value = false;
+      router.push('/dashboard');
     }
   };
 

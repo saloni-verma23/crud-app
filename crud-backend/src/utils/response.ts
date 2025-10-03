@@ -8,6 +8,11 @@ export const sendResponse = <T>(
   data: T | null = null,
   status = 200
 ): void => {
-  const response: ApiResponse<T> = { success, message, data };
+  const response: ApiResponse<T> = {
+    success,
+    message,
+    data: (data === null ? {} : data) as T,
+  };
+
   res.status(status).json(response);
 };

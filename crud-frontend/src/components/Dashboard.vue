@@ -3,9 +3,12 @@ import { onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '../store/userStore';
 import UserTable from './UserTable.vue';
+import { useAuthStore } from '../store/authStore';
 
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
+const authorized = authStore.user.role==='SUPER_ADMIN' ? true : false;
 
 watch(
   () => userStore.currentPage,
@@ -86,9 +89,9 @@ const goToUserForm = () => {
         </div>
 
         <div class="col-md-4 text-end">
-          <button class="btn submitBtn ms-auto" @click="goToUserForm" :disabled="userStore.loading">
+          <button class="btn submitBtn ms-auto" @click="goToUserForm" v-if="authStore.isPermitted('create_user')" :disabled="userStore.loading"  >
             <span
-              v-if="userStore.loading"
+               v-if="userStore.loading"
               class="spinner-border spinner-border-sm me-2"
               role="status"
               aria-hidden="true"

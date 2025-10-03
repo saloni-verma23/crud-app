@@ -1,0 +1,16 @@
+{
+  "roles": [
+    {
+      "name": "SUPER_ADMIN",
+      "permissions": ["create_user", "read_user", "update_user", "delete_user"]
+    },
+    {
+      "name": "ADMIN",
+      "permissions": ["read_user", "update_user"]
+    },
+    {
+      "name": "USER",
+      "permissions": ["read_user"]
+    }
+  ]
+}

@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '../store/authStore';
 import { useUserStore } from '../store/userStore';
 
 const userStore = useUserStore();
+const authStore = useAuthStore();
 const router = useRouter();
 
 const goToEditForm = (id: number) => {
   router.push('/user/edit/' + id);
 };
+
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -99,17 +102,20 @@ const handlePageChange = (page: number | string) => {
         <td>{{ user.address }}</td>
         <td>
           <div class="d-flex">
-            <button
+              <button
               class="btn submitBtn me-3"
               @click="goToEditForm(user.id!)"
               :disabled="userStore.loading"
+              v-if="authStore.isPermitted('update_user')"
             >
               Edit
             </button>
+           
             <button
               class="btn btn-danger"
               @click="handleDelete(user.id!)"
               :disabled="userStore.loading"
+               v-if="authStore.isPermitted('delete_user')"
             >
               Delete
             </button>
